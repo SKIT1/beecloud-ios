@@ -7,7 +7,8 @@
 //
 
 #import "GuideViewController.h"
-#import "ViewController.h"
+//#import "ViewController.h"
+#import "ChannelCollectionViewController.h"
 
 @interface GuideViewController ()
 
@@ -28,13 +29,14 @@
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    ViewController *viewController = (ViewController *)segue.destinationViewController;
+//    ViewController *viewController = (ViewController *)segue.destinationViewController;
+    ChannelCollectionViewController *view = (ChannelCollectionViewController *)segue.destinationViewController;
     if ([segue.identifier isEqualToString:@"doPay"]) {
-        viewController.actionType = 0;
+        view.actionType = 0;
     } else if ([segue.identifier isEqualToString:@"doQuery"]){
-        viewController.actionType = 1;
+        view.actionType = 1;
     } else {
-        viewController.actionType = 2;
+        view.actionType = 2;
     }
 }
 

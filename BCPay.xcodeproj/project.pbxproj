@@ -26,6 +26,8 @@
 		3602F9501BA07C3000A28ADC /* libWeChatSDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3602F9451BA07C3000A28ADC /* libWeChatSDK.a */; };
 		3602F9511BA07C3000A28ADC /* AlipaySDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3602F9491BA07C3000A28ADC /* AlipaySDK.framework */; };
 		3602F9521BA07C3000A28ADC /* BCAliPayAdapter.m in Sources */ = {isa = PBXBuildFile; fileRef = 3602F94E1BA07C3000A28ADC /* BCAliPayAdapter.m */; };
+		3605E41A1C7C73D800A88C14 /* ChannelCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3605E4191C7C73D800A88C14 /* ChannelCollectionViewController.m */; };
+		3605E41D1C7C745F00A88C14 /* ChannelCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 3605E41C1C7C745F00A88C14 /* ChannelCollectionViewCell.m */; };
 		3618770A1C2D134B00CE4AED /* BeeCloud.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 361877091C2D134B00CE4AED /* BeeCloud.bundle */; };
 		362FC8EF1BF5DE5F007450FF /* XCTestCase+AsyncTesting.m in Sources */ = {isa = PBXBuildFile; fileRef = 362FC8E11BF5DE5F007450FF /* XCTestCase+AsyncTesting.m */; };
 		363464041C15842C00C724B2 /* BCSandBoxAdapter.m in Sources */ = {isa = PBXBuildFile; fileRef = 363464011C15842C00C724B2 /* BCSandBoxAdapter.m */; };
@@ -179,6 +181,10 @@
 		3602F94B1BA07C3000A28ADC /* APayAuthInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APayAuthInfo.h; sourceTree = "<group>"; };
 		3602F94D1BA07C3000A28ADC /* BCAliPayAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BCAliPayAdapter.h; sourceTree = "<group>"; };
 		3602F94E1BA07C3000A28ADC /* BCAliPayAdapter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = BCAliPayAdapter.m; sourceTree = "<group>"; };
+		3605E4181C7C73D800A88C14 /* ChannelCollectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelCollectionViewController.h; sourceTree = "<group>"; };
+		3605E4191C7C73D800A88C14 /* ChannelCollectionViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChannelCollectionViewController.m; sourceTree = "<group>"; };
+		3605E41B1C7C745F00A88C14 /* ChannelCollectionViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelCollectionViewCell.h; sourceTree = "<group>"; };
+		3605E41C1C7C745F00A88C14 /* ChannelCollectionViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ChannelCollectionViewCell.m; sourceTree = "<group>"; };
 		361877091C2D134B00CE4AED /* BeeCloud.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = BeeCloud.bundle; sourceTree = "<group>"; };
 		362FC8E01BF5DE5F007450FF /* XCTestCase+AsyncTesting.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "XCTestCase+AsyncTesting.h"; sourceTree = "<group>"; };
 		362FC8E11BF5DE5F007450FF /* XCTestCase+AsyncTesting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "XCTestCase+AsyncTesting.m"; sourceTree = "<group>"; };
@@ -976,11 +982,15 @@
 				369B3A171BA95CB300051CCE /* GenQrCode.h */,
 				369B3A181BA95CB300051CCE /* GenQrCode.m */,
 				3697502D1B68C659009FAEDB /* Main.storyboard */,
+				3605E41B1C7C745F00A88C14 /* ChannelCollectionViewCell.h */,
+				3605E41C1C7C745F00A88C14 /* ChannelCollectionViewCell.m */,
 				369750301B68C659009FAEDB /* Images.xcassets */,
 				369750321B68C659009FAEDB /* LaunchScreen.xib */,
 				369750231B68C659009FAEDB /* Supporting Files */,
 				3658B0001BB2A0DA00183C28 /* PayChannelCell.h */,
 				3658B0011BB2A0DA00183C28 /* PayChannelCell.m */,
+				3605E4181C7C73D800A88C14 /* ChannelCollectionViewController.h */,
+				3605E4191C7C73D800A88C14 /* ChannelCollectionViewController.m */,
 			);
 			path = BCPayExample;
 			sourceTree = "<group>";
@@ -1165,6 +1175,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3605E41A1C7C73D800A88C14 /* ChannelCollectionViewController.m in Sources */,
 				36501E4B1C06EDA800BC8B8A /* BCRefundStatusReq.m in Sources */,
 				3602F9301BA031E800A28ADC /* AFHTTPRequestOperation.m in Sources */,
 				3697502C1B68C659009FAEDB /* ViewController.m in Sources */,
@@ -1211,6 +1222,7 @@
 				36501E391C06EC9000BC8B8A /* BCPayResp.m in Sources */,
 				36501E3F1C06ECA600BC8B8A /* BCPayPalVerifyReq.m in Sources */,
 				36501E481C06ED9A00BC8B8A /* BCQueryRefundByIdReq.m in Sources */,
+				3605E41D1C7C745F00A88C14 /* ChannelCollectionViewCell.m in Sources */,
 				36A3C0801BB535B2003E82B1 /* NSDictionary+Utils.m in Sources */,
 				3602F9321BA031E800A28ADC /* AFHTTPSessionManager.m in Sources */,
 				369B3A1C1BA9646300051CCE /* QRCodeViewController.m in Sources */,

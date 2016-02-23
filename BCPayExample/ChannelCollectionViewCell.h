@@ -1,0 +1,15 @@
+//
+//  ChannelCollectionViewCell.h
+//  BCPay
+//
+//  Created by Ewenlong03 on 16/2/23.
+//  Copyright © 2016年 BeeCloud. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+@interface ChannelCollectionViewCell : UICollectionViewCell
+@property (weak, nonatomic) IBOutlet UIImageView *icon;
+@property (weak, nonatomic) IBOutlet UILabel *title;
+
+@end

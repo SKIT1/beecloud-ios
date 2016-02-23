@@ -1,12 +1,12 @@
 //
-//  ViewController.m
-//  BeeCloudDemo
+//  ChannelCollectionViewController.m
+//  BCPay
 //
-//  Created by RInz on 15/2/5.
-//  Copyright (c) 2015年 RInz. All rights reserved.
+//  Created by Ewenlong03 on 16/2/23.
+//  Copyright © 2016年 BeeCloud. All rights reserved.
 //
 
-#import "ViewController.h"
+#import "ChannelCollectionViewController.h"
 #import "QueryResultViewController.h"
 #import "AFNetworking.h"
 #import "PayPalMobile.h"
@@ -16,21 +16,32 @@
 #import "ScanViewController.h"
 #import "PayChannelCell.h"
 #import "BDWalletSDKMainManager.h"
+#import "ChannelCollectionViewCell.h"
 
-@interface ViewController ()<BeeCloudDelegate, PayPalPaymentDelegate, SCanViewDelegate, QRCodeDelegate,BDWalletSDKMainManagerDelegate> {
+@interface ChannelCollectionViewController ()<BeeCloudDelegate, PayPalPaymentDelegate, SCanViewDelegate, QRCodeDelegate,BDWalletSDKMainManagerDelegate,UICollectionViewDelegate, UICollectionViewDataSource> {
     PayPalConfiguration * _payPalConfig;
     PayPalPayment *_completedPayment;
     PayChannel currentChannel;
-    NSMutableArray *channelList;
+    NSArray *channelList;
     NSString * billTitle;
 }
 
+
 @end
 
-@implementation ViewController
+@implementation ChannelCollectionViewController
+
+static NSString * const reuseIdentifier = @"ChannelCell";
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    
+    // Uncomment the following line to preserve selection between presentations
+    // self.clearsSelectionOnViewWillAppear = NO;
+    
+    // Register cell classes
+    //    [self.collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:reuseIdentifier];
+    
     self.view.backgroundColor = [UIColor whiteColor];
     
     if (self.actionType == 0) {
@@ -40,27 +51,22 @@
     } else if (self.actionType == 2) {
         self.title = @"查询退款订单";
     }
-    NSArray *tempArray = @[@{@"channel":@"线上支付",
-                      @"subChannel":@[@{@"sub":@(PayChannelWxApp), @"img":@"wx", @"title":@"微信支付"},
-                                      @{@"sub":@(PayChannelAliApp), @"img":@"ali", @"title":@"支付宝支付"},
-                                      @{@"sub":@(PayChannelUnApp), @"img":@"un", @"title":@"银联在线"},
-                                      @{@"sub":@(PayChannelBaiduApp), @"img":@"baidu", @"title":@"百度钱包"},
-                                      @{@"sub":@(PayChannelPayPal), @"img":@"paypal", @"title":@"PayPal"},
-                                      @{@"sub":@(PayChannelApplePay), @"img":@"ApplePay", @"title":@"ApplePay"}
-                                      ]},
-                    @{@"channel":@"线下收款",
-                      @"subChannel":@[@{@"sub":@(PayChannelWxNative), @"img":@"wx", @"title":@"微信扫码支付"},
-                                      @{@"sub":@(PayChannelWxScan), @"img":@"wx", @"title":@"微信刷卡支付"},
-                                      @{@"sub":@(PayChannelAliOfflineQrCode), @"img":@"ali", @"title":@"支付宝扫码支付"},
-                                      @{@"sub":@(PayChannelAliScan), @"img":@"ali", @"title":@"支付宝条码支付"}]}
-                ];
-    channelList = [NSMutableArray arrayWithArray:tempArray];
-    
-    if ([BeeCloud getCurrentMode]) {
-        [channelList removeLastObject];
-    }
+    channelList = @[@{@"sub":@(PayChannelWxApp), @"img":@"wx", @"title":@"微信支付"},
+                           @{@"sub":@(PayChannelWxNative), @"img":@"wx", @"title":@"微信扫码"},
+                           @{@"sub":@(PayChannelWxScan), @"img":@"wx", @"title":@"微信刷卡"},
+                           @{@"sub":@(PayChannelAliApp), @"img":@"ali", @"title":@"支付宝支付"},
+                           @{@"sub":@(PayChannelAliOfflineQrCode), @"img":@"ali", @"title":@"支付宝扫码"},
+                           @{@"sub":@(PayChannelAliScan), @"img":@"ali", @"title":@"支付宝条码"},
+                           @{@"sub":@(PayChannelUnApp), @"img":@"un", @"title":@"银联在线"},
+                           @{@"sub":@(PayChannelApplePay), @"img":@"ApplePay", @"title":@"ApplePay"},
+                           @{@"sub":@(PayChannelBaiduApp), @"img":@"baidu", @"title":@"百度钱包"},
+                           @{@"sub":@(PayChannelPayPal), @"img":@"paypal", @"title":@"PayPal"},
+                           ];
+
     billTitle = [BeeCloud getCurrentMode] ? @"iOS Demo Sandbox" : @"iOS Demo Live";
     self.orderList = nil;
+    
+    // Do any additional setup after loading the view.
 }
 
 - (void)viewWillAppear:(BOOL)animated {
@@ -68,9 +74,85 @@
     [BeeCloud setBeeCloudDelegate:self];
 }
 
+/**
+ *  打开摄像头，扫描用户的二维码
+ */
+- (void)showScanViewController {
+    ScanViewController *scanView = [[ScanViewController alloc] init];
+    scanView.delegate = self;
+    [self presentViewController:scanView animated:YES completion:nil];
+}
+
+/**
+ *  获得支付授权码，发起支付
+ *
+ *  @param authCode 支付授权码
+ */
+- (void)scanWithAuthCode:(NSString *)authCode {
+    [self doOfflinePay:currentChannel authCode:authCode];
+}
+
+/**
+ *  用户付款后，查询订单状态
+ *
+ *  @param resp 支付结果
+ */
+- (void)qrCodeBeScaned:(BCOfflinePayResp *)resp {
+    BCOfflineStatusReq *req = [[BCOfflineStatusReq alloc] init];
+    BCOfflinePayReq *payReq = (BCOfflinePayReq *)resp.request;
+    req.channel = payReq.channel;
+    req.billNo = payReq.billNo;
+    [BeeCloud sendBCReq:req];
+}
+
+#pragma mark - prepare segue
+- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+    QueryResultViewController *viewController = (QueryResultViewController *)segue.destinationViewController;
+    if([segue.identifier isEqualToString:@"queryResult"]) {
+        viewController.resp = self.orderList;
+    }
+}
+
+#pragma mark - 生成订单号
+- (NSString *)genBillNo {
+    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
+    [formatter setDateFormat:@"yyyyMMddHHmmssSSS"];
+    return [formatter stringFromDate:[NSDate date]];
+}
+
+- (void)setHideTableViewCell:(UITableView *)tableView {
+    UIView *view = [[UIView alloc] init];
+    view.backgroundColor = [UIColor clearColor];
+    tableView.tableFooterView = view;
+}
+
+#pragma mark - Baidu Delegate
+- (void)BDWalletPayResultWithCode:(int)statusCode payDesc:(NSString *)payDescs {
+    NSString *status = @"";
+    switch (statusCode) {
+        case 0:
+            status = @"支付成功";
+            break;
+        case 1:
+            status = @"支付中";
+            break;
+        case 2:
+            status = @"支付取消";
+            break;
+        default:
+            break;
+    }
+    [self showAlertView:status];
+}
+
+- (void)logEventId:(NSString *)eventId eventDesc:(NSString *)eventDesc {
+}
+
+
 #pragma mark - 微信、支付宝、银联、百度钱包
 
 - (void)doPay:(PayChannel)channel {
+    
     NSString *billno = [self genBillNo];
     NSMutableDictionary *dict = [NSMutableDictionary dictionaryWithObjectsAndKeys:@"value",@"key", nil];
     /**
@@ -229,7 +311,7 @@
             }
         }
             break;
-        
+            
         case BCObjsTypeOfflinePayResp:
         {
             BCOfflinePayResp *tempResp = (BCOfflinePayResp *)resp;
@@ -341,47 +423,79 @@
     }
 }
 
-#pragma maek tableView Delegate
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+- (void)didReceiveMemoryWarning {
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+/*
+ #pragma mark - Navigation
+ 
+ // In a storyboard-based application, you will often want to do a little preparation before navigation
+ - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
+ // Get the new view controller using [segue destinationViewController].
+ // Pass the selected object to the new view controller.
+ }
+ */
+
+#pragma mark <UICollectionViewDataSource>
+
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
+    return 1;
+}
+
+
+- (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     return channelList.count;
 }
 
-- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    NSArray *sub = channelList[section][@"subChannel"];
-    return sub.count;
-}
-
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-    return  channelList[section][@"channel"];
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section {
-    return 30;
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-    return 60.0f;
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-    static NSString *simpleTableIdentifier = @"payChannelCell";
+- (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     
-    PayChannelCell *cell = [tableView dequeueReusableCellWithIdentifier:simpleTableIdentifier];
+    ChannelCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
     
-    if (cell == nil) {
-        cell = [[PayChannelCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:simpleTableIdentifier];
-    }
-    NSDictionary *row = channelList[indexPath.section][@"subChannel"][indexPath.row];
-    cell.cImg.image = [UIImage imageNamed:row[@"img"]];
+    // Configure the cell
+    NSDictionary *row = channelList[indexPath.row];
     cell.title.text = row[@"title"];
+    cell.icon.image = [UIImage imageNamed:row[@"img"]];
     
     return cell;
 }
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    NSArray *row = channelList[indexPath.section][@"subChannel"];
-    PayChannel channel = [row[indexPath.row][@"sub"] integerValue];
+#pragma mark <UICollectionViewDelegate>
+
+/*
+ // Uncomment this method to specify if the specified item should be highlighted during tracking
+ - (BOOL)collectionView:(UICollectionView *)collectionView shouldHighlightItemAtIndexPath:(NSIndexPath *)indexPath {
+	return YES;
+ }
+ */
+
+/*
+ // Uncomment this method to specify if the specified item should be selected
+ - (BOOL)collectionView:(UICollectionView *)collectionView shouldSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+ return YES;
+ }
+ */
+
+/*
+ // Uncomment these methods to specify if an action menu should be displayed for the specified item, and react to actions performed on the item
+ - (BOOL)collectionView:(UICollectionView *)collectionView shouldShowMenuForItemAtIndexPath:(NSIndexPath *)indexPath {
+	return NO;
+ }
+ 
+ - (BOOL)collectionView:(UICollectionView *)collectionView canPerformAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender {
+	return NO;
+ }
+ 
+ - (void)collectionView:(UICollectionView *)collectionView performAction:(SEL)action forItemAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender {
+	
+ }
+ */
+
+- (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
+    NSDictionary *row = channelList[indexPath.row];
+    PayChannel channel = [row[@"sub"] integerValue];
     if (self.actionType == 0) {
         switch (channel) {
             case PayChannelWxApp:
@@ -393,10 +507,18 @@
                 break;
             case PayChannelWxNative:
             case PayChannelAliOfflineQrCode:
+                if ([BeeCloud getCurrentMode]) {
+                    [self showAlertView:@"该渠道不支持沙箱测试"];
+                    return;
+                }
                 [self doOfflinePay:channel authCode:@""];
                 break;
             case PayChannelWxScan:
             case PayChannelAliScan:
+                if ([BeeCloud getCurrentMode]) {
+                    [self showAlertView:@"该渠道不支持沙箱测试"];
+                    return;
+                }
                 currentChannel = channel;
 #if TARGET_IPHONE_SIMULATOR
                 [self showAlertView:@"模拟器不能打开相机"];
@@ -426,81 +548,7 @@
         }
     }
     
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
-}
-
-/**
- *  打开摄像头，扫描用户的二维码
- */
-- (void)showScanViewController {
-    ScanViewController *scanView = [[ScanViewController alloc] init];
-    scanView.delegate = self;
-    [self presentViewController:scanView animated:YES completion:nil];
-}
-
-/**
- *  获得支付授权码，发起支付
- *
- *  @param authCode 支付授权码
- */
-- (void)scanWithAuthCode:(NSString *)authCode {
-    [self doOfflinePay:currentChannel authCode:authCode];
-}
-
-/**
- *  用户付款后，查询订单状态
- *
- *  @param resp 支付结果
- */
-- (void)qrCodeBeScaned:(BCOfflinePayResp *)resp {
-    BCOfflineStatusReq *req = [[BCOfflineStatusReq alloc] init];
-    BCOfflinePayReq *payReq = (BCOfflinePayReq *)resp.request;
-    req.channel = payReq.channel;
-    req.billNo = payReq.billNo;
-    [BeeCloud sendBCReq:req];
-}
-
-#pragma mark - prepare segue
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    QueryResultViewController *viewController = (QueryResultViewController *)segue.destinationViewController;
-    if([segue.identifier isEqualToString:@"queryResult"]) {
-        viewController.resp = self.orderList;
-    }
-}
-
-#pragma mark - 生成订单号
-- (NSString *)genBillNo {
-    NSDateFormatter *formatter = [[NSDateFormatter alloc] init];
-    [formatter setDateFormat:@"yyyyMMddHHmmssSSS"];
-    return [formatter stringFromDate:[NSDate date]];
-}
-
-- (void)setHideTableViewCell:(UITableView *)tableView {
-    UIView *view = [[UIView alloc] init];
-    view.backgroundColor = [UIColor clearColor];
-    tableView.tableFooterView = view;
-}
-
-#pragma mark - Baidu Delegate
-- (void)BDWalletPayResultWithCode:(int)statusCode payDesc:(NSString *)payDescs {
-    NSString *status = @"";
-    switch (statusCode) {
-        case 0:
-            status = @"支付成功";
-            break;
-        case 1:
-            status = @"支付中";
-            break;
-        case 2:
-            status = @"支付取消";
-            break;
-        default:
-            break;
-    }
-    [self showAlertView:status];
-}
-
-- (void)logEventId:(NSString *)eventId eventDesc:(NSString *)eventDesc {
+    [collectionView deselectItemAtIndexPath:indexPath animated:NO];
 }
 
 @end
