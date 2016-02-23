@@ -521,7 +521,7 @@ static NSString * const reuseIdentifier = @"ChannelCell";
                 }
                 currentChannel = channel;
 #if TARGET_IPHONE_SIMULATOR
-                [self showAlertView:@"模拟器不能打开相机"];
+                [self showAlertView:@"模拟器不能打开相机"];  
 #elif TARGET_OS_IPHONE
                 [self showScanViewController];
 #endif
